@@ -1,0 +1,1 @@
+{"version":3,"sources":["webpack:///./src/pages/nn.js"],"names":["nn"],"mappings":"6FAAA,gCASeA,UAPJ,WAET,OACE","file":"component---src-pages-nn-js-13730c9cd201d6178ce9.js","sourcesContent":["import React from \"react\"\n\nconst nn = () => {\n  \n  return (\n    <div />\n  );\n}\n\nexport default nn\n"],"sourceRoot":""}
