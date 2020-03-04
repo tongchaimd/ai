@@ -1,11 +1,10 @@
 import React from "react"
+import SpaceDisplay from "../components/spacedisplay"
+import NeuralNetwork from "../classes/neural-network"
 
 class Ai extends React.Component {
   constructor(props) {
     super(props);
-    this.canvas = React.createRef();
-    this.width = 1300;
-    this.height = 600;
     this.a = {
       position: [1000.0, 1000.0],
       velocity: [6.0, -6.0],
@@ -26,148 +25,42 @@ class Ai extends React.Component {
       fuel: 100.0,
       magicAccelerationMagnitude: 0.1
     }
-    this.goalCircle = {
-      position: [100.0, 100.0],
-      radius: 2000.0
-    }
-    this.antiMag = 1.5;
-    this.scale = 500.0 / Math.pow(this.antiMag, 6);
     this.timestep = 0.5;
     this.sim = new GravitySimulator(new DefaultMathFunction());
     this.sim.addBody(this.a);
     this.sim.addBody(this.b);
+    this.sim.addBody(this.c);
+    //const a = new NeuralNetwork([1, 3, 3, 1]);
+    //for (let i = 0; i < 2000; i++) {
+      //const expectation = Math.random();
+      //const out = a.process([expectation * 100.0])[0];
+      //console.log("expectation");
+      //console.log(expectation);
+      //console.log("out");
+      //console.log(out);
+      //a.learn(0.1, [out - expectation]);
+      ////console.log("weights");
+      ////console.log(a.layers[0].weights()[0][0]);
+      ////console.log(a.layers[1].weights()[0][0]);
+      ////console.log("biases");
+      ////console.log(a.layers[0].neurons[0].bias);
+      ////console.log(a.layers[1].neurons[0].bias);
+    //}
   }
 
   componentDidMount() {
-    const realCanvas = this.canvas.current;
-    const context = realCanvas.getContext("2d");
-    this.renderCanvas(context);
-    setInterval(this.renderCanvas.bind(this), 16, context);
-
-    const rect = realCanvas.getBoundingClientRect();
-    
-    realCanvas.addEventListener('mousedown', e => {
-      if (!this.hasGameStarted) {
-        this.sim.addBody(this.c);
-      }
-      this.hasGameStarted = true;
-      this.isMouseDown = true;
-      const mouseCanvasX = e.clientX - rect.left;
-      const mouseCanvasY = e.clientY - rect.top;
-      const mouseCoordX = this.xDrawCoordToCoord(mouseCanvasX);
-      const mouseCoordY = this.yDrawCoordToCoord(mouseCanvasY);
-      this.c.magicAccelerationDirection = [];
-      this.c.magicAccelerationDirection[0] = mouseCoordX - this.c.position[0];
-      this.c.magicAccelerationDirection[1] = mouseCoordY - this.c.position[1];
-    });
-
-    realCanvas.addEventListener('mousemove', e => {
-      if (this.isMouseDown) {
-        const mouseCanvasX = e.clientX - rect.left;
-        const mouseCanvasY = e.clientY - rect.top;
-        const mouseCoordX = this.xDrawCoordToCoord(mouseCanvasX);
-        const mouseCoordY = this.yDrawCoordToCoord(mouseCanvasY);
-        this.c.magicAccelerationDirection = [];
-        this.c.magicAccelerationDirection[0] = mouseCoordX - this.c.position[0];
-        this.c.magicAccelerationDirection[1] = mouseCoordY - this.c.position[1];
-      }
-    });
-
-    realCanvas.addEventListener('mouseup', e => {
-      this.isMouseDown = false;
-      this.c.magicAccelerationDirection = null;
-    });
-
-    realCanvas.addEventListener('wheel', e => {
-      e.preventDefault();
-      this.antiMag += e.deltaY * 0.02;
-      if (this.antiMag < 1.0) this.antiMag = 1.0;
-      this.scale = 500.0 / Math.pow(this.antiMag, 6);
-    });
+    setInterval(this.stepSimulation.bind(this), 16);
   }
 
-  renderCanvas(context) {
-    this.cleanCanvas(context);
-    this.fillBackground(context);
-    this.drawCircle(this.a.position, this.a.radius, context);
-    this.drawCircle(this.b.position, this.b.radius, context);
-    this.drawCircle(this.c.position, this.c.radius, context);
-    this.drawGoalCircle(context);
-    this.drawFuel(context);
-    if (this.isMouseDown) {
-      if (this.c.fuel > 0.0) {
-        this.c.fuel = this.c.fuel - (1.0 * this.timestep);
-        if (this.c.fuel < 0.0) {
-          this.c.fuel = 0.0;
-        }
-      }
-    }
+  stepSimulation() {
     this.sim.updateTime(this.timestep);
     this.sim.detectCollision(this.c);
-  }
-
-  fillBackground(context) {
-    context.fillStyle = '#16122b';
-    context.fillRect(0, 0, this.width, this.height);
-    this.resetContext(context);
-  }
-
-  drawFuel(context) {
-    context.lineWidth = 3.0;
-    context.strokeRect(50, 50, 20, 100);
-    context.fillRect(50, 150, 20, -this.c.fuel);
-    this.resetContext(context);
-  }
-
-  drawGoalCircle(context) {
-    context.lineWidth = 1.2;
-    context.strokeStyle = 'grey';
-    context.setLineDash([3, 12]);
-    if (!this.hasGameStarted) {
-      this.goalCircle.position = this.c.position;
-    }
-    this.drawCircle(this.goalCircle.position, this.goalCircle.radius, context);
-    this.resetContext(context);
-  }
-
-  drawCircle(center, radius, context) {
-    context.beginPath();
-    context.arc(this.xCoordToDrawCoord(center[0]), this.yCoordToDrawCoord(center[1]), radius * this.scale, 0, 2 * Math.PI);
-    context.stroke();
-  }
-
-  resetContext(context) {
-    context.lineWidth = 2.0;
-    context.strokeStyle = 'grey';
-    context.fillStyle = 'grey';
-    context.setLineDash([]);
-  }
-
-  cleanCanvas(context) {
-    context.clearRect(0, 0, this.width, this.height);
-  }
-
-  xCoordToDrawCoord(x) {
-    return ((x - this.c.position[0]) * this.scale) + (this.width / 2);
-  }
-  
-  yCoordToDrawCoord(y) {
-    return (-(y - this.c.position[1]) * this.scale) + (this.height / 2);
-  }
-
-
-  xDrawCoordToCoord(x) {
-    return ((x - (this.width / 2)) / this.scale) + this.c.position[0];
-  }
-  
-  yDrawCoordToCoord(y) {
-    return (-(y - (this.height / 2)) / this.scale) + this.c.position[1];
+    this.forceUpdate();
   }
 
   render() {
     return (
-      <canvas ref={this.canvas} height={this.height} width={this.width} style={{ border: `solid` }}>
-      </canvas>
+      <SpaceDisplay circles={[this.a, this.b, this.c]} focusedOnCircle={this.c} fuelPercentage={this.c.fuel} />
     )
   }
 }
