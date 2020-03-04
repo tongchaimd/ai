@@ -1,4 +1,5 @@
 module.exports = {
+  pathPrefix: "/ai",
   siteMetadata: {
     title: `Abstract Land`,
     author: `WhyBird`,
