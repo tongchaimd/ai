@@ -171,41 +171,4 @@ class Neuron {
   }
 }
 
-class RandomGen {
-  static normalUnit() {
-    return Math.pow(-2.0 * (Math.log(Math.random)), 0.5);
-  }
-
-  static normalUnitCombination(dimensionCount) {
-    const R = RandomGen.normalUnit();
-    const acc = [R];
-    for (let i = 1; i < dimensionCount; i++) {
-      const newTheta = 2.0 * Math.PI * Math.random;
-      acc.push(R * Math.cos(newTheta));
-      for (let j = 0; j < i; j++) {
-        acc[j] *= Math.sin(newTheta);
-      }
-    }
-    return acc;
-  }
-}
-
-class OUNoise {
-  constructor(theta, sigma, dimensionCount) {
-    this.dimensionCount = dimensionCount;
-    this.theta = theta;
-    this.sigma = sigma;
-    this.reset();
-  }
-
-  reset() {
-    this.state = Vectorary.zeroes(this.dimensionCount);
-  }
-
-  walk() {
-    const dstate = Vectorary.add(Vectorary.scale(-this.theta, this.state), Vectorary.scale(this.sigma, RandomGen.normalUnitCombination(this.dimensionCount)));
-    this.state = Vectorary.add(this.state, dstate);
-  }
-}
-
 export default NeuralNetwork;
