@@ -11,8 +11,6 @@ class DDGD {
     this.getInitialStateFunc = ddgdBuilder.getInitialStateFunc;
     this.doActionFunc = ddgdBuilder.doActionFunc;
     const actionDimension = ddgdBuilder.actorLayout[ddgdBuilder.actorLayout.length - 1];
-    //this.noise = new OUNoise(0.15, 0.3, actionDimension);
-    //this.noise.reset();
     this.replayBuffer = new ReplayBuffer();
   }
 
