@@ -11,7 +11,7 @@ class DDGD {
     this.getInitialStateFunc = ddgdBuilder.getInitialStateFunc;
     this.doActionFunc = ddgdBuilder.doActionFunc;
     const actionDimension = ddgdBuilder.actorLayout[ddgdBuilder.actorLayout.length - 1];
-    this.replayBuffer = new ReplayBuffer();
+    this.replayBuffer = new ReplayBuffer(ddgdBuilder.replayMaxLength);
   }
 
   learn(length, exploreRep) {
@@ -41,12 +41,21 @@ class DDGD {
 }
 
 class ReplayBuffer {
-  constructor() {
+  constructor(maxLength) {
     this.buffer = [];
+    this.maxLength = maxLength;
+    this.isFull = false;
   }
 
   push(state, action, reward, nextState) {
     this.buffer.push([state, action, reward, nextState]);
+    if (!this.isFull) {
+      if (this.buffer.length === maxLength) {
+        this.isFull = true;
+      }
+    } else {
+      this.buffer.shift();
+    }
   }
 
   sample(size) {
