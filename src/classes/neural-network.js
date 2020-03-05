@@ -5,18 +5,20 @@ class NeuralNetwork {
    * [2] 2 neurons but the output is the same as the input
    * [3, 2, 1] 3 input neurons & 1 hidden layer of 2 neurons & 1 output neuron
    */
-  constructor(layoutArray) {
-    this.layoutArray = layoutArray;
-    this.layerCount = this.layoutArray.length - 1;
-    this.inputSize = this.layoutArray[0];
-    this.outputSize = this.layoutArray[this.layerCount - 1];
-    this.layers = [];
-    for (let l = 0; l < this.layerCount; l++) {
-      const prevLayerSize = this.layoutArray[l];
-      if (l < this.layerCount - 1) {
-        this.layers.push(new Layer(prevLayerSize, this.layoutArray[l+1]));
-      } else {
-        this.layers.push(new Layer(prevLayerSize, this.layoutArray[l+1], true));
+  constructor(layoutArray, dontInit = false) {
+    if (!dontInit) {
+      this.layoutArray = layoutArray;
+      this.layerCount = this.layoutArray.length - 1;
+      this.inputSize = this.layoutArray[0];
+      this.outputSize = this.layoutArray[this.layerCount - 1];
+      this.layers = [];
+      for (let l = 0; l < this.layerCount; l++) {
+        const prevLayerSize = this.layoutArray[l];
+        if (l < this.layerCount - 1) {
+          this.layers.push(new Layer(prevLayerSize, this.layoutArray[l+1]));
+        } else {
+          this.layers.push(new Layer(prevLayerSize, this.layoutArray[l+1], true));
+        }
       }
     }
   }
@@ -63,18 +65,30 @@ class NeuralNetwork {
       leftAArray = this.layers[l].update(alpha, leftAArray);
     }
   }
+
+  clone() {
+    const nnClone = new NeuralNetwork(0, true);
+    nnClone.layers = this.layers.map(l => l.clone());
+    nnClone.layoutArray = this.layoutArray;
+    nnClone.layerCount = this.layoutArray.length - 1;
+    nnClone.inputSize = this.layoutArray[0];
+    nnClone.outputSize = this.layoutArray[this.layerCount - 1];
+    return nnClone;
+  }
 }
 
 class Layer {
-  constructor(inputCount, neuronCount, isOutput = false) {
-    this.neurons = [];
-    this.isOutput = isOutput;
-    for (let n = 0; n < neuronCount; n++) {
-      const newNeuron = new Neuron(inputCount);
-      if (this.isOutput) {
-        newNeuron.setLinearActivation(false);
+  constructor(inputCount, neuronCount, isOutput = false, dontInit = false) {
+    if (!dontInit) {
+      this.neurons = [];
+      this.isOutput = isOutput;
+      for (let n = 0; n < neuronCount; n++) {
+        const newNeuron = new Neuron(inputCount);
+        if (this.isOutput) {
+          newNeuron.setLinearActivation(false);
+        }
+        this.neurons.push(newNeuron);
       }
-      this.neurons.push(newNeuron);
     }
   }
 
@@ -101,15 +115,23 @@ class Layer {
   weights() {
     return this.neurons.map(neuron => neuron.weights);
   }
+
+  clone() {
+    const layerClone = new Layer(0, 0, 0, true);
+    layerClone.neurons = this.neurons.map(n => n.clone());
+    return layerClone;
+  }
 }
 
 class Neuron {
-  constructor(inputSize) {
-    this.weights = Vectorary.zeroes(inputSize);
-    for (let i = 0; i < inputSize; i++) {
-      this.weights[i] += (Math.random() * 2.0) - 1.0;
+  constructor(inputSize, dontInit = false) {
+    if (!dontInit) {
+      this.weights = Vectorary.zeroes(inputSize);
+      for (let i = 0; i < inputSize; i++) {
+        this.weights[i] += (Math.random() * 2.0) - 1.0;
+      }
+      this.bias = (Math.random() * 2.0) - 1.0;
     }
-    this.bias = (Math.random() * 2.0) - 1.0;
   }
 
   setLinearActivation(isLinear) {
@@ -123,10 +145,6 @@ class Neuron {
       this.dz = 1.0;
     } else {
       this.a = this.tanh(this.z);
-      //console.log("z");
-      //console.log(this.z);
-      //console.log("exp z");
-      //console.log(Math.exp(this.z));
       this.dz = this.dtanh(this.z);
     }
     return this.a;
@@ -137,26 +155,12 @@ class Neuron {
   }
 
   backward(rightDeltaArray, rightWeights) {
-    //console.log("rightDeltaArray");
-    //console.log(rightDeltaArray);
-    //console.log("rightWeights");
-    //console.log(rightWeights);
-    //console.log("dz");
-    //console.log(this.dz);
     this.delta = Vectorary.dot(rightDeltaArray, rightWeights) * this.dz;
     return this.delta;
   }
 
   update(alpha, leftAArray) {
     const ad = Vectorary.scale(this.delta, leftAArray);
-    //console.log("leftAArray");
-    //console.log(leftAArray);
-    //console.log("delta");
-    //console.log(this.delta);
-    //console.log("ad");
-    //console.log(ad);
-    //console.log("dW");
-    //console.log(Vectorary.scale(alpha, ad));
     this.weights = Vectorary.sub(this.weights, Vectorary.scale(alpha, ad));
     this.bias = this.bias - (alpha * this.delta);
     return this.a;
@@ -168,6 +172,14 @@ class Neuron {
 
   dtanh(input) {
     return 4 / Math.pow(Math.exp(-input) + Math.exp(input), 2);
+  }
+
+  clone() {
+    const neuronClone = new Neuron(0, true);
+    neuronClone.weights = this.weights.slice();
+    neuronClone.bias = this.bias;
+    neuronClone.isLinear = this.isLinear;
+    return neuronClone;
   }
 }
 
