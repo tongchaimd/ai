@@ -32,26 +32,20 @@ class Simulator {
   }
 
   getInitialState() {
-    this.a = {
-      position: [1000.0, 1000.0],
-      velocity: [6.0, -6.0],
-      radius: Simulator.massToRadius(1000.0),
-      mass: 1000.0
-    }
-    this.b = {
-      position: [0.0, 0.0],
-      velocity: [0.0, 0.0],
-      radius: Simulator.massToRadius(100000.0),
-      mass: 100000.0
-    }
-    this.c = {
-      position: [300.0, 300.0],
-      velocity: [11.0, -11.0],
-      radius: Simulator.massToRadius(0.001),
-      mass: 0.001,
-      fuel: 100.0,
-      magicAccelerationMagnitude: 0.1
-    }
+    this.a.position = [1000.0, 1000.0];
+    this.a.velocity = [6.0, -6.0];
+    this.a.radius = Simulator.massToRadius(1000.0);
+    this.a.mass = 1000.0;
+    this.b.position = [0.0, 0.0];
+    this.b.velocity = [0.0, 0.0];
+    this.b.radius = Simulator.massToRadius(100000.0);
+    this.b.mass = 100000.0;
+    this.c.position = [300.0, 300.0];
+    this.c.velocity = [11.0, -11.0];
+    this.c.radius = Simulator.massToRadius(0.001);
+    this.c.mass = 0.001;
+    this.c.fuel = 100.0;
+    this.c.magicAccelerationMagnitude = 0.1;
     return this.getState();
   }
 
@@ -62,7 +56,7 @@ class Simulator {
 
   doAction(state, action) {
     this.setState(state);
-    const isPropulsing = action[0];
+    const isPropulsing = action[0] > 0;
     const propulsionX = action[1];
     const propulsionY = action[2];
     this.c.magicAccelerationDirection = [propulsionX, propulsionY];
@@ -128,11 +122,11 @@ class Simulator {
   }
 
   static massToRadius(value) {
-    return Math.pow(value * 5000.0, 1/3);
+    return Math.pow(value * 500.0, 1/3);
   }
 
   static radiusToMass(value) {
-    return Math.pow(value, 3) * 5000.0;
+    return Math.pow(value, 3) / 500.0;
   }
 
   static simSpaceToNnSpace(value) {

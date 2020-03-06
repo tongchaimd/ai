@@ -52,6 +52,12 @@ class GravitySimulation {
 
   updateTime(dt) {
     this.bodies.forEach((otherBody) => {
+      if (otherBody.isMagicEnabled && otherBody.fuel > 0.0) {
+        otherBody.fuel -= dt;
+        if (otherBody.fuel < 0) {
+          otherBody.fuel = 0.0;
+        }
+      }
       // Integrate via Runge-Kutta...
       let R = otherBody.position;
       let V = otherBody.velocity;

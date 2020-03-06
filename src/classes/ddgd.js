@@ -14,7 +14,7 @@ class Ddgd {
     this.getInitialStateFunc = ddgdBuilder.getInitialStateFunc;
     this.doActionFunc = ddgdBuilder.doActionFunc;
     this.actionDimension = ddgdBuilder.actorLayout[ddgdBuilder.actorLayout.length - 1];
-    this.criticActionIndices = Array(this.actionDimension).keys(); //[0, 1, .., actionDimension]
+    this.criticActionIndices = [...Array(this.actionDimension).keys()]; //[0, 1, .., actionDimension]
     this.replayBuffer = new ReplayBuffer(ddgdBuilder.replayMaxLength);
     this.minibatchesSize = ddgdBuilder.minibatchesSize;
     this.gamma = ddgdBuilder.gamma;
@@ -22,14 +22,41 @@ class Ddgd {
     this.tau = ddgdBuilder.tau;
   }
 
+  initializeExhibition() {
+    this.exhibitState = this.getInitialStateFunc();
+  }
+
+  step() {
+    const tmp = this.doActionFunc(this.exhibitState, this.actor.process(this.exhibitState));
+    const nextState = tmp[1];
+    this.exhibitState = nextState;
+  }
+  
+  onTimeStep(callback) {
+    this.onTimeStep = callback;
+  }
+
+  onExploreRep(callback) {
+    this.onExploreRep = callback;
+  }
+
   learn(length, exploreRep) {
     const noise = new OUNoise(0.15, 0.3, this.actionDimension);
     noise.reset();
     let currentState = this.getInitialStateFunc();
     for (let t = 0; t < length; t++) {
-      this.explore();
+      this.explore(currentState, exploreRep, noise);
       this.update();
-      currentState = this.actor.process(currentState);
+      const action = this.actor.process(currentState);
+      const tmp = this.doActionFunc(currentState, action);
+      const reward = tmp[0];
+      const nextState = tmp[1];
+      if (reward === 500.0) {
+        currentState = this.getInitialStateFunc();
+      } else {
+        currentState = nextState;
+      }
+      this.onTimeStep();
     }
   }
 
@@ -62,6 +89,7 @@ class Ddgd {
       const reward = tmp[0];
       const nextState = tmp[1];
       this.replayBuffer.push(fromState, tryAction, reward, nextState);
+      this.onExploreRep();
     }
   }
 }
@@ -111,7 +139,7 @@ class OUNoise {
     this.state = Vectorary.add(this.state, dstate);
   }
 
-  getNextValue() {
+  nextValue() {
     this.walk();
     return this.state;
   }
@@ -139,7 +167,7 @@ class DdgdBuilder {
   }
 
   setMiniBatchesSize(value) {
-    this.miniBatchesSize = value;
+    this.minibatchesSize = value;
   }
 
   setGamma(value) {

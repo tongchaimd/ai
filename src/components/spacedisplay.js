@@ -38,8 +38,15 @@ class SpaceDisplay extends React.Component {
     if (this.props.circles) {
       this.props.circles.forEach((circle) => {
         this.drawCircle(circle.position, circle.radius, this.props.focusedOnCircle.position);
+        if (circle.isMagicEnabled && circle.fuel > 0) {
+          const aX = circle.magicAccelerationDirection[0];
+          const aY = circle.magicAccelerationDirection[1];
+          const aLength = Math.pow(aX * aX + aY * aY, 1/2);
+          this.drawArrow(Math.atan2(aY, aX), [(aX / aLength) * 100.0, (aY / aLength) * 100.0]);
+        }
       });
     }
+    //this.drawReward();
     if (this.props.fuelPercentage) {
       this.drawFuel(this.props.fuelPercentage);
     }
@@ -62,6 +69,40 @@ class SpaceDisplay extends React.Component {
     this.context.beginPath();
     this.context.arc(((center[0] - offset[0]) * this.scale) + this.centerX, (-(center[1] - offset[1]) * this.scale) + this.centerY, radius * this.scale, 0, 2 * Math.PI);
     this.context.stroke();
+  }
+
+  drawArrow(rotate, offset) {
+    const points = [
+      [-50, -10],
+      [0, -10],
+      [0, -30],
+      [20, 0],
+      [0, 30],
+      [0, 10],
+      [-50, 10],
+      [-50, -10]
+    ];
+    this.context.beginPath();
+    const rotated0 = this.rotate(rotate, points[0]);
+    this.context.moveTo(rotated0[0] + offset[0] + this.centerX, rotated0[1] + offset[1] + this.centerY);
+    for (let p = 1; p < points.length; p++) {
+      const rotatedP = this.rotate(rotate, points[p]);
+      this.context.lineTo(rotatedP[0] + offset[0] + this.centerX, rotatedP[1] + offset[1] + this.centerY);
+    }
+    this.context.stroke();
+  }
+
+  rotate(theta, vector) {
+    const sinT = Math.sin(theta);
+    const cosT = Math.cos(theta);
+    const newX = (vector[0] * cosT) - (vector[1] * sinT);
+    const newY = (vector[0] * sinT) + (vector[1] * cosT);
+    return [newX, newY];
+  }
+
+  drawReward() {
+    this.context.font = '20px sans-serif';
+    this.context.fillText("reward " + 0.0, 20, 500);
   }
 
   resetContext() {
