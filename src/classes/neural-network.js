@@ -32,26 +32,33 @@ class NeuralNetwork {
     return currentData;
   }
 
-  gradientWrtNthInput(n) {
+  gradientWrtNthsInputAtState(nArray, state) {
     if (this.outputSize !== 1) {
       throw new Error("gradientWrtNthInput function can only be used on 1 output network");
     }
 
-    let rightDeltaArray = [1]; // output
+    this.process(state);
+   
+    let rightDeltaArray = [1];
     for (let l = this.layerCount - 1; l >= 0; l--) {
-      rightDeltaArray = this.layers[l].backward(rightDeltaArray);
+      if (l === this.layerCount - 1) { // first loop
+        rightDeltaArray = this.layers[l].backward(rightDeltaArray);
+      } else {
+        rightDeltaArray = this.layers[l].backward(rightDeltaArray, this.layers[l+1].weights());
+      }
     }
-
-    let leftAArray = Vectorary.zeroes(this.inputSize);
-    leftAArray[n] = this.latestInputArray[n];
-    for (let l = 0; l < this.layerCount; l++) {
-      leftAArray = this.layers[l].gradientForward(leftAArray);
-    }
-    return leftAArray[0];
+    const nDeltas = this.layers[0].weights().map(w => {
+      const acc = [];
+      for (let n = 0; n < nArray.length; n++) {
+        acc.push(this.state[n] * w[n]);
+      }
+      return acc;
+    });
+    return nDeltas.reduce((acc, d) => Vectorary.sum(acc, d));
   }
 
   learn(alpha, errorArray) {
-    let rightDeltaArray = errorArray; // output
+    let rightDeltaArray = errorArray;
     for (let l = this.layerCount - 1; l >= 0; l--) {
       if (l === this.layerCount - 1) { // first loop
         rightDeltaArray = this.layers[l].backward(rightDeltaArray);
@@ -66,13 +73,19 @@ class NeuralNetwork {
     }
   }
 
+  lerp(towardNn, tau) {
+    for (let l = 0; l < this.layerCount; l++) {
+      this.layers[l].lerp(towardNn.layers[l], tau);
+    }
+  }
+
   clone() {
     const nnClone = new NeuralNetwork(0, true);
     nnClone.layers = this.layers.map(l => l.clone());
     nnClone.layoutArray = this.layoutArray;
-    nnClone.layerCount = this.layoutArray.length - 1;
-    nnClone.inputSize = this.layoutArray[0];
-    nnClone.outputSize = this.layoutArray[this.layerCount - 1];
+    nnClone.layerCount = this.layerCount;
+    nnClone.inputSize = this.inputSize;
+    nnClone.outputSize = this.outputSize;
     return nnClone;
   }
 }
@@ -114,6 +127,12 @@ class Layer {
 
   weights() {
     return this.neurons.map(neuron => neuron.weights);
+  }
+
+  lerp(towardLayer, tau) {
+    for (let n = 0; n < this.neurons.length; n++) {
+      this.neurons[n].lerp(towardLayer.neurons[n], tau);
+    }
   }
 
   clone() {
@@ -172,6 +191,13 @@ class Neuron {
 
   dtanh(input) {
     return 4 / Math.pow(Math.exp(-input) + Math.exp(input), 2);
+  }
+
+  lerp(towardNeuron, tau) {
+    this.bias = towardNeuron.bias - ((1.0 - tau) * this.bias);
+    for (let w = 0; w < this.weights.length; w++) {
+      this.weights[w] = towardNeuron.weights[w] - ((1.0 - tau) * this.weights[w]);
+    }
   }
 
   clone() {

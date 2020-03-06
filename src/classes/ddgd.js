@@ -1,4 +1,7 @@
-class DDGD {
+import NeuralNetwork from "./neural-network";
+import Vectorary from "./vectorary";
+
+class Ddgd {
   /*constructor params:
    *    getInitialState() returns state
    *    doAction(state, action) returns [reward, nextState]
@@ -10,23 +13,44 @@ class DDGD {
     this.targetActor = this.actor.clone();
     this.getInitialStateFunc = ddgdBuilder.getInitialStateFunc;
     this.doActionFunc = ddgdBuilder.doActionFunc;
-    const actionDimension = ddgdBuilder.actorLayout[ddgdBuilder.actorLayout.length - 1];
+    this.actionDimension = ddgdBuilder.actorLayout[ddgdBuilder.actorLayout.length - 1];
+    this.criticActionIndices = Array(this.actionDimension).keys(); //[0, 1, .., actionDimension]
     this.replayBuffer = new ReplayBuffer(ddgdBuilder.replayMaxLength);
+    this.minibatchesSize = ddgdBuilder.minibatchesSize;
+    this.gamma = ddgdBuilder.gamma;
+    this.alpha = ddgdBuilder.alpha;
+    this.tau = ddgdBuilder.tau;
   }
 
   learn(length, exploreRep) {
-    const actionDimension = ddgdBuilder.actorLayout[ddgdBuilder.actorLayout.length - 1];
-    const noise = new OUNoise(0.15, 0.3, actionDimension);
+    const noise = new OUNoise(0.15, 0.3, this.actionDimension);
     noise.reset();
     let currentState = this.getInitialStateFunc();
     for (let t = 0; t < length; t++) {
-      explore(currentState, exploreRep, noise);
+      this.explore();
       this.update();
       currentState = this.actor.process(currentState);
     }
   }
 
   update() {
+    const minibatches = this.replayBuffer.sample(this.minibatchSize);
+    minibatches.forEach(minibatch => {
+      const state = minibatch[0];
+      const action = minibatch[1];
+      const reward = minibatch[2];
+      const nextState = minibatch[3];
+      const targetActorNextAction = this.targetActor.process(nextState);
+      const nextTargetQ = this.targetCritic.process([...targetActorNextAction, ...nextState]);
+      const y = reward + (this.gamma * nextTargetQ);
+      const q = this.critic.process([action, ...state]);
+      this.critic.learn(this.alpha, q - y);
+      const newAction = this.actor.process(state);
+      const qWrtA = this.critic.gradientWrtNthInputAtState(this.criticActionIndices, [...newAction, ...state]);
+      this.actor.learn(this.alpha, [qWrtA]);
+    });
+    this.targetActor.lerp(this.actor, this.tau);
+    this.targetCritic.lerp(this.critic, this.tau);
   }
 
   explore(fromState, rep, noise) {
@@ -34,7 +58,9 @@ class DDGD {
     for (let i = 0; i < rep; i++) {
       const dAction = noise.nextValue();
       const tryAction = Vectorary.add(policyAction, dAction);
-      reward, nextState = this.doActionFunc(fromState, tryAction);
+      const tmp = this.doActionFunc(fromState, tryAction);
+      const reward = tmp[0];
+      const nextState = tmp[1];
       this.replayBuffer.push(fromState, tryAction, reward, nextState);
     }
   }
@@ -50,7 +76,7 @@ class ReplayBuffer {
   push(state, action, reward, nextState) {
     this.buffer.push([state, action, reward, nextState]);
     if (!this.isFull) {
-      if (this.buffer.length === maxLength) {
+      if (this.buffer.length === this.maxLength) {
         this.isFull = true;
       }
     } else {
@@ -91,6 +117,48 @@ class OUNoise {
   }
 }
 
+class DdgdBuilder {
+  setCriticLayout(value) {
+    this.criticLayout = value;
+  }
+
+  setActorLayout(value) {
+    this.actorLayout = value;
+  }
+
+  setGetInitialStateFunc(value) {
+    this.getInitialStateFunc = value;
+  }
+
+  setDoActionFunc(value) {
+    this.doActionFunc = value;
+  }
+
+  setReplayMaxLength(value) {
+    this.replayMaxLength = value;
+  }
+
+  setMiniBatchesSize(value) {
+    this.miniBatchesSize = value;
+  }
+
+  setGamma(value) {
+    this.gamma = value;
+  }
+
+  setAlpha(value) {
+    this.alpha = value;
+  }
+
+  setTau(value) {
+    this.tau = value;
+  }
+
+  build() {
+    return new Ddgd(this);
+  }
+}
+
 class RandomGen {
   static normalUnit() {
     return Math.pow(-2.0 * (Math.log(Math.random)), 0.5);
@@ -110,4 +178,4 @@ class RandomGen {
   }
 }
 
-export default DDGD;
+export default DdgdBuilder;

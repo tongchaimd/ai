@@ -1,6 +1,6 @@
-class GravitySimulator {
+class GravitySimulation {
 
-  constructor(mf) {
+  constructor(mf = new DefaultMathFunction()) {
     this.mf = mf;
     this.bodies = [];
     this.GRAVITY_CONSTANT = 1; // Nm2/kg2
@@ -29,7 +29,7 @@ class GravitySimulator {
     let accel = this.mf.nullVector();
 
     // add acceleration from booster
-    if (body.magicAccelerationDirection && body.fuel > 0.0) {
+    if (body.isMagicEnabled && body.fuel > 0.0) {
       const magicAcceleration = this.mf.mulScalar(this.mf.normalize(body.magicAccelerationDirection), body.magicAccelerationMagnitude);
       accel = this.mf.add(accel, magicAcceleration);
     }

@@ -40,6 +40,17 @@ class Vectorary {
     return arrayAClone;
   }
 
+  static schur(arrayA, arrayB) {
+    if (arrayA.length !== arrayB.length) {
+      throw new Error("unequal lengths");
+    }
+    const arrayAClone = arrayA.slice();
+    for (let i = 0; i < arrayAClone.length; i++) {
+      arrayAClone[i] *= arrayB[i];
+    }
+    return arrayAClone;
+  }
+
   static init(size, initialValue) {
     const array = [];
     for (let i = 0; i < size; i++) {
@@ -57,4 +68,4 @@ class Vectorary {
   }
 }
 
-export default Vetorary;
+export default Vectorary;
