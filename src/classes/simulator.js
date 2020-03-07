@@ -24,7 +24,7 @@ class Simulator {
       magicAccelerationDirection: [0.0, 0.0],
       magicAccelerationMagnitude: 0.1
     }
-    this.timestep = 5.0;
+    this.timestep = 0.2;
     this.sim = new GravitySimulation();
     this.sim.addBody(this.a);
     this.sim.addBody(this.b);

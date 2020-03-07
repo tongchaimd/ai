@@ -41,7 +41,7 @@ class Ai extends React.Component {
       }
     });
     this.ddgd.initializeExhibition();
-    this.exhibitInterval = setInterval(this.step.bind(this), 100);
+    this.exhibitInterval = setInterval(this.step.bind(this), 16);
   }
 
   step() {

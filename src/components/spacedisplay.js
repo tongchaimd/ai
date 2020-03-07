@@ -8,7 +8,7 @@ class SpaceDisplay extends React.Component {
     this.centerX = this.width / 2;
     this.height = 600;
     this.centerY = this.height / 2;
-    this.antiMag = 1.5;
+    this.antiMag = 3.0;
     this.scale = 500.0 / Math.pow(this.antiMag, 6);
     this.context = undefined;
   }
@@ -102,7 +102,7 @@ class SpaceDisplay extends React.Component {
 
   drawReward() {
     this.context.font = '20px sans-serif';
-    this.context.fillText("reward " + this.props.reward, 20, 500);
+    this.context.fillText("reward " + Math.round(this.props.reward), 20, 500);
   }
 
   resetContext() {
