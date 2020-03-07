@@ -42,11 +42,11 @@ class SpaceDisplay extends React.Component {
           const aX = circle.magicAccelerationDirection[0];
           const aY = circle.magicAccelerationDirection[1];
           const aLength = Math.pow(aX * aX + aY * aY, 1/2);
-          this.drawArrow(Math.atan2(aY, aX), [(aX / aLength) * 100.0, (aY / aLength) * 100.0]);
+          this.drawArrow(Math.atan2(aY, aX), [(aX / aLength) * 100.0, (-aY / aLength) * 100.0]);
         }
       });
     }
-    //this.drawReward();
+    this.drawReward();
     if (this.props.fuelPercentage) {
       this.drawFuel(this.props.fuelPercentage);
     }
@@ -84,10 +84,10 @@ class SpaceDisplay extends React.Component {
     ];
     this.context.beginPath();
     const rotated0 = this.rotate(rotate, points[0]);
-    this.context.moveTo(rotated0[0] + offset[0] + this.centerX, rotated0[1] + offset[1] + this.centerY);
+    this.context.moveTo(rotated0[0] + offset[0] + this.centerX, -rotated0[1] + offset[1] + this.centerY);
     for (let p = 1; p < points.length; p++) {
       const rotatedP = this.rotate(rotate, points[p]);
-      this.context.lineTo(rotatedP[0] + offset[0] + this.centerX, rotatedP[1] + offset[1] + this.centerY);
+      this.context.lineTo(rotatedP[0] + offset[0] + this.centerX, -rotatedP[1] + offset[1] + this.centerY);
     }
     this.context.stroke();
   }
@@ -102,7 +102,7 @@ class SpaceDisplay extends React.Component {
 
   drawReward() {
     this.context.font = '20px sans-serif';
-    this.context.fillText("reward " + 0.0, 20, 500);
+    this.context.fillText("reward " + this.props.reward, 20, 500);
   }
 
   resetContext() {

@@ -30,6 +30,7 @@ class Ddgd {
     const tmp = this.doActionFunc(this.exhibitState, this.actor.process(this.exhibitState));
     const nextState = tmp[1];
     this.exhibitState = nextState;
+    return tmp[0];
   }
   
   onTimeStep(callback) {
@@ -70,8 +71,8 @@ class Ddgd {
       const targetActorNextAction = this.targetActor.process(nextState);
       const nextTargetQ = this.targetCritic.process([...targetActorNextAction, ...nextState]);
       const y = reward + (this.gamma * nextTargetQ);
-      const q = this.critic.process([action, ...state]);
-      this.critic.learn(this.alpha, q - y);
+      const q = this.critic.process([...action, ...state]);
+      this.critic.learn(this.alpha, [q - y]);
       const newAction = this.actor.process(state);
       const qWrtA = this.critic.gradientWrtNthInputAtState(this.criticActionIndices, [...newAction, ...state]);
       this.actor.learn(this.alpha, [qWrtA]);

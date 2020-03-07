@@ -97,17 +97,9 @@ class GravitySimulation {
       if(otherBody === body) {
         return false;
       }
-
-      // check if d^2 > r^3 + R^3 -> d > r + R -> not colliding
       const dVector = this.mf.sub(otherBody.position, body.position);
       const dSquared = this.mf.lengthSquared(dVector);
-      const sumOfRadiiCubed = body.mass + otherBody.mass;
-      if (dSquared > sumOfRadiiCubed) return false;
-
-      // check if d^2 < r + R -> d < r + R -> colliding
       const sumOfRadii = body.radius + otherBody.radius;
-      if (dSquared < sumOfRadii) return true;
-
       // check if d < r + R -> colliding
       const d = Math.pow(dSquared, 1/2);
       if (d < sumOfRadii) return true;

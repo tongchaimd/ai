@@ -24,6 +24,9 @@ class NeuralNetwork {
   }
 
   process(inputArray) {
+    if (inputArray.length !== this.inputSize) {
+      throw new Error("wrong input size");
+    }
     this.latestInputArray = inputArray;
     let currentData = inputArray.slice();
     for (let l = 0; l < this.layerCount; l++) {
@@ -158,6 +161,9 @@ class Neuron {
   }
 
   process(inputArray) {
+    if (inputArray.length !== this.weights.length) {
+      throw new Error("wrong input size");
+    }
     this.z = Vectorary.dot(inputArray, this.weights) + this.bias;
     if (this.isLinear) {
       this.a = this.z;
@@ -167,10 +173,6 @@ class Neuron {
       this.dz = this.dtanh(this.z);
     }
     return this.a;
-  }
-
-  gradientForward(leftAArray) {
-    return Vectorary.scale(this.delta, leftAArray);
   }
 
   backward(rightDeltaArray, rightWeights) {
@@ -194,9 +196,9 @@ class Neuron {
   }
 
   lerp(towardNeuron, tau) {
-    this.bias = towardNeuron.bias - ((1.0 - tau) * this.bias);
+    this.bias = (tau * towardNeuron.bias) + ((1.0 - tau) * this.bias);
     for (let w = 0; w < this.weights.length; w++) {
-      this.weights[w] = towardNeuron.weights[w] - ((1.0 - tau) * this.weights[w]);
+      this.weights[w] = (tau * towardNeuron.weights[w]) + ((1.0 - tau) * this.weights[w]);
     }
   }
 

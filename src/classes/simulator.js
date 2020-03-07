@@ -24,7 +24,7 @@ class Simulator {
       magicAccelerationDirection: [0.0, 0.0],
       magicAccelerationMagnitude: 0.1
     }
-    this.timestep = 0.5;
+    this.timestep = 5.0;
     this.sim = new GravitySimulation();
     this.sim.addBody(this.a);
     this.sim.addBody(this.b);
@@ -64,13 +64,13 @@ class Simulator {
     this.stepSimulation();
     let reward = 0.0;
     if (this.isColliding) {
-      reward = -500.0;
+      reward = -5000000000.0;
     } else {
-      const dVX = this.a.velocity[0] - this.c.velocity[0];
-      const dVY = this.a.velocity[1] - this.c.velocity[1];
-      const cToAX = this.a.position[0] - this.c.position[0];
-      const cToAY = this.a.position[1] - this.c.position[1];
-      const vAway = (cToAX * dVX) + (cToAY * dVY);
+      const dVX = this.b.velocity[0] - this.c.velocity[0];
+      const dVY = this.b.velocity[1] - this.c.velocity[1];
+      const cToBX = this.b.position[0] - this.c.position[0];
+      const cToBY = this.b.position[1] - this.c.position[1];
+      const vAway = (cToBX * dVX) + (cToBY * dVY);
       reward = vAway;
     }
     const nextState = this.getState();
