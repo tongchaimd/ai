@@ -57,19 +57,24 @@ class Ai extends React.Component {
     this.ddgd.initializeExhibition();
   }
 
+  restart = () => {
+    this.ddgd.initializeExhibition();
+  }
+
   render() {
     return (
       <div>
         <SpaceDisplay ref={this.displayRef} circles={[this.simulator.a, this.simulator.b, this.simulator.c]} focusedOnCircle={this.simulator.c} fuelPercentage={this.simulator.c.fuel} reward={this.state.reward} />
         <div>
           <label>length
-            <input type="text" defaultValue="500" ref={this.lengthRef}/>
+            <input type="text" defaultValue="5" ref={this.lengthRef}/>
           </label>
           <label>exploration
-            <input type="text" defaultValue="100" ref={this.explorationRef} />
+            <input type="text" defaultValue="5" ref={this.explorationRef} />
           </label>
           <input type="button" value="TRAIN" onClick={this.train} />
         </div>
+        <input type="button" value="RESTART" onClick={this.restart} />
       </div>
     )
   }

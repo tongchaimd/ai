@@ -190,14 +190,14 @@ class DdgdBuilder {
 
 class RandomGen {
   static normalUnit() {
-    return Math.pow(-2.0 * (Math.log(Math.random)), 0.5);
+    return Math.pow(-2.0 * (Math.log(Math.random())), 0.5);
   }
 
   static normalUnitCombination(dimensionCount) {
     const R = RandomGen.normalUnit();
     const acc = [R];
     for (let i = 1; i < dimensionCount; i++) {
-      const newTheta = 2.0 * Math.PI * Math.random;
+      const newTheta = 2.0 * Math.PI * Math.random();
       acc.push(R * Math.cos(newTheta));
       for (let j = 0; j < i; j++) {
         acc[j] *= Math.sin(newTheta);
