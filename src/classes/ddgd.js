@@ -62,19 +62,19 @@ class Ddgd {
   }
 
   update() {
-    const minibatches = this.replayBuffer.sample(this.minibatchSize);
+    const minibatches = this.replayBuffer.sample(this.minibatchesSize);
     minibatches.forEach(minibatch => {
       const state = minibatch[0];
       const action = minibatch[1];
       const reward = minibatch[2];
       const nextState = minibatch[3];
       const targetActorNextAction = this.targetActor.process(nextState);
-      const nextTargetQ = this.targetCritic.process([...targetActorNextAction, ...nextState]);
-      const y = reward + (this.gamma * nextTargetQ);
+      const targetNextQ = this.targetCritic.process([...targetActorNextAction, ...nextState]);
+      const y = reward + (this.gamma * targetNextQ);
       const q = this.critic.process([...action, ...state]);
       this.critic.learn(this.alpha, [q - y]);
       const newAction = this.actor.process(state);
-      const qWrtA = this.critic.gradientWrtNthInputAtState(this.criticActionIndices, [...newAction, ...state]);
+      const qWrtA = this.critic.gradientWrtNthsInputAtState(this.criticActionIndices, [...newAction, ...state]);
       this.actor.learn(this.alpha, [qWrtA]);
     });
     this.targetActor.lerp(this.actor, this.tau);
@@ -115,6 +115,9 @@ class ReplayBuffer {
 
   sample(size) {
     const samples = [];
+    if (size < this.buffer.length) {
+      size = this.buffer.length;
+    }
     for (let i = 0; i < size; i++) {
       const index = Math.floor(Math.random() * this.buffer.length);
       samples.push(this.buffer[index]);

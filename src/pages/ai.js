@@ -14,7 +14,7 @@ class Ai extends React.Component {
     ddgdBuilder.setGetInitialStateFunc(this.simulator.getInitialState.bind(this.simulator))
     ddgdBuilder.setDoActionFunc(this.simulator.doAction.bind(this.simulator))
     ddgdBuilder.setReplayMaxLength(10000000)
-    ddgdBuilder.setMiniBatchesSize(1000)
+    ddgdBuilder.setMiniBatchesSize(100)
     ddgdBuilder.setGamma(0.5)
     ddgdBuilder.setAlpha(0.1)
     ddgdBuilder.setTau(0.01)

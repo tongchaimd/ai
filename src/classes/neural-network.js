@@ -10,7 +10,7 @@ class NeuralNetwork {
       this.layoutArray = layoutArray;
       this.layerCount = this.layoutArray.length - 1;
       this.inputSize = this.layoutArray[0];
-      this.outputSize = this.layoutArray[this.layerCount - 1];
+      this.outputSize = this.layoutArray[this.layerCount];
       this.layers = [];
       for (let l = 0; l < this.layerCount; l++) {
         const prevLayerSize = this.layoutArray[l];
@@ -53,11 +53,11 @@ class NeuralNetwork {
     const nDeltas = this.layers[0].weights().map(w => {
       const acc = [];
       for (let n = 0; n < nArray.length; n++) {
-        acc.push(this.state[n] * w[n]);
+        acc.push(state[n] * w[n]);
       }
       return acc;
     });
-    return nDeltas.reduce((acc, d) => Vectorary.sum(acc, d));
+    return nDeltas.reduce((acc, d) => Vectorary.add(acc, d));
   }
 
   learn(alpha, errorArray) {
